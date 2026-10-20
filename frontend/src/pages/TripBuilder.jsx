@@ -6,6 +6,7 @@ import {
   Coffee, Gem, Wallet, AlertCircle
 } from 'lucide-react'
 import { useTripStore } from '../store/tripStore'
+import { useAuthStore } from '../store/authStore'
 import { generateItineraryAPI } from '../services/api'
 import LoadingScreen from '../components/common/LoadingScreen'
 import toast from 'react-hot-toast'
@@ -33,6 +34,7 @@ const POPULAR_DESTINATIONS = [
 
 export default function TripBuilder() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const { 
     formData, setFormField, isGenerating, 
     setGenerating, setItineraryResult, setError 
@@ -98,6 +100,12 @@ export default function TripBuilder() {
   }
 
   const handleGenerate = async () => {
+    if (!user) {
+      toast.error('Please sign in or create an account to generate your itinerary!')
+      navigate('/auth')
+      return
+    }
+
     setGenerating(true)
     try {
       const payload = {

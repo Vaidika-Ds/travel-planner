@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Compass, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react'
 import { supabase } from '../services/supabase'
+import { useTripStore } from '../store/tripStore'
 import toast from 'react-hot-toast'
 
 export default function AuthPage() {
   const navigate = useNavigate()
+  const { formData } = useTripStore()
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,13 +21,18 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         })
         if (error) throw error
-        toast.success('Registration successful! Please sign in.')
-        setIsSignUp(false)
+        if (data?.session) {
+          toast.success('Account created! Welcome!')
+          navigate(formData.destination ? '/builder' : '/dashboard')
+        } else {
+          toast.success('Registration successful! Please sign in with your credentials.')
+          setIsSignUp(false)
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -33,7 +40,7 @@ export default function AuthPage() {
         })
         if (error) throw error
         toast.success('Welcome back!')
-        navigate('/dashboard')
+        navigate(formData.destination ? '/builder' : '/dashboard')
       }
     } catch (err) {
       console.error('Authentication error:', err)
