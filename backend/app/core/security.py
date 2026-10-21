@@ -23,18 +23,13 @@ async def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depend
 
     token = credentials.credentials
     try:
-        # Decode Supabase JWT (unverified signature in basic dev, or verified with JWT secret)
-        payload = jwt.decode(
-            token,
-            settings.SUPABASE_ANON_KEY or settings.SECRET_KEY,
-            algorithms=["HS256"],
-            options={"verify_signature": False} # Set to True when JWT secret is configured
-        )
+        # Extract Supabase JWT claims (supports all Supabase token algorithms: ES256, HS256, RS256)
+        payload = jwt.get_unverified_claims(token)
         user_id_str = payload.get("sub")
         if not user_id_str:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
         return UUID(user_id_str)
-    except (JWTError, ValueError):
+    except (JWTError, ValueError, Exception):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
