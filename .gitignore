@@ -19,3 +19,8 @@ dist/
 build/
 .DS_Store
 *.log
+
+# Local Utility Scripts
+build_*.py
+create_*.py
+generate_*.py
